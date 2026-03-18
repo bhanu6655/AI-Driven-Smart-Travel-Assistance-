@@ -9,7 +9,10 @@ import fetch from 'node-fetch';
 import Stripe from 'stripe';
 import 'dotenv/config';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '');
+let stripe;
+if (process.env.STRIPE_SECRET_KEY) {
+  stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -150,6 +153,9 @@ app.post('/api/trips', async (req, res) => {
 
 app.post('/api/create-payment-intent', async (req, res) => {
   try {
+    if (!stripe) {
+      return res.status(500).json({ error: "Stripe is not configured on this server." });
+    }
     const { amount } = req.body;
     
     // Stripe expects amount in smallest currency unit (paise for INR)
