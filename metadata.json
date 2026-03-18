@@ -1,0 +1,7 @@
+{
+  "name": "AI-Powered Smart Travel Planner",
+  "description": "A high-end travel planning application that uses Gemini AI to generate personalized itineraries, budget breakdowns, and recommendations based on user preferences.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
