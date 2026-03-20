@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Legend } from 'recharts';
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
@@ -581,7 +581,7 @@ const ResultsDisplay = ({ plan }) => {
 
         const isOverBudget = totalEstimated > plan.budgetLimit;
         const totalSpent = loggedExpenses.reduce((sum, exp) => sum + exp.amount, 0);
-        const spendPercentage = Math.min((totalSpent / plan.budgetLimit) * 100, 100);
+        const spendPercentage = Math.min(((totalEstimated + totalSpent) / plan.budgetLimit) * 100, 100);
 
         const handleLogExpense = (e) => {
           e.preventDefault();
@@ -616,29 +616,47 @@ const ResultsDisplay = ({ plan }) => {
               </div>
             </div>
 
-            <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
-              <h5 className="font-bold text-slate-700 text-sm mb-6 flex items-center gap-2">
-                <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
-                Spending Distribution
+            <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm">
+              <h5 className="font-black text-slate-800 text-lg mb-8 flex items-center gap-2">
+                <span className="text-xl">📊</span> Spending Distribution
               </h5>
-              <div className="h-64 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                    <XAxis dataKey="category" axisLine={false} tickLine={false} tick={{ fontSize: 11, fontWeight: 500, fill: '#64748b' }} />
-                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#64748b' }} />
-                    <Tooltip
-                      formatter={(value) => [formatPrice(value), 'Amount']}
-                      contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
-                      cursor={{ fill: '#f1f5f9' }}
-                    />
-                    <Bar dataKey="amount" radius={[6, 6, 0, 0]} barSize={40}>
-                      {chartData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
+              <div className="flex flex-col lg:flex-row items-center gap-8">
+                <div className="h-72 flex-1 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={chartData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={80}
+                        outerRadius={110}
+                        paddingAngle={5}
+                        dataKey="amount"
+                        nameKey="category"
+                      >
+                        {chartData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip 
+                        formatter={(value) => formatPrice(value)}
+                        contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)', padding: '12px 16px', fontWeight: 'bold' }} 
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                
+                <div className="flex-1 w-full flex flex-col gap-3">
+                  {chartData.map((item, i) => (
+                    <div key={i} className="flex justify-between items-center p-4 rounded-2xl bg-slate-50 border border-slate-100 hover:shadow-md hover:border-slate-300 transition-all">
+                      <div className="flex items-center gap-4">
+                        <div className="w-4 h-4 rounded-full shadow-inner" style={{ backgroundColor: COLORS[i % COLORS.length] }}></div>
+                        <span className="text-sm font-bold text-slate-700 capitalize pr-2">{item.category}</span>
+                      </div>
+                      <span className="text-base font-black text-slate-900 shrink-0">{formatPrice(item.amount)}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -650,7 +668,7 @@ const ResultsDisplay = ({ plan }) => {
                 <div className="text-right">
                   <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Remaining Limit</p>
                   <p className="text-xl font-black text-blue-600">
-                    {formatPrice(Math.max(plan.budgetLimit - totalSpent, 0))}
+                    {formatPrice(Math.max(plan.budgetLimit - totalEstimated - totalSpent, 0))}
                   </p>
                 </div>
               </div>
