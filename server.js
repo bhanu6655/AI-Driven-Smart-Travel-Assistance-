@@ -153,10 +153,10 @@ app.post('/api/trips', async (req, res) => {
 
 app.post('/api/create-payment-intent', async (req, res) => {
   try {
-    if (!stripe) {
-      return res.status(500).json({ error: "Stripe is not configured on this server." });
-    }
     const { amount } = req.body;
+    if (!stripe) {
+      return res.json({ clientSecret: null, mockRequired: true });
+    }
     
     // Stripe expects amount in smallest currency unit (paise for INR)
     const paymentIntent = await stripe.paymentIntents.create({

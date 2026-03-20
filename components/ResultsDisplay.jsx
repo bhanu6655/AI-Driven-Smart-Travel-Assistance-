@@ -260,7 +260,7 @@ const ResultsDisplay = ({ plan }) => {
         throw new Error(`The server returned an error (${res.status}). Did you restart the server?`);
       }
       const data = await res.json();
-      setBookingState(prev => ({ ...prev, processing: false, clientSecret: data.clientSecret, fetchError: null }));
+      setBookingState(prev => ({ ...prev, processing: false, clientSecret: data.clientSecret, mockRequired: data.mockRequired, fetchError: null }));
     } catch (err) {
       console.error('Failed to init stripe:', err);
       setBookingState(prev => ({ ...prev, processing: false, fetchError: err.message }));
@@ -565,8 +565,12 @@ const ResultsDisplay = ({ plan }) => {
       case 'budget':
         if (!data.budgetAnalysis?.breakdown?.length) return <EmptyState message="Budget analysis data is unavailable." />;
 
-        let totalEstimated = data.budgetAnalysis.totalEstimated || 0;
-        let chartData = [...data.budgetAnalysis.breakdown];
+        let chartData = (data.budgetAnalysis.breakdown || []).filter(item => {
+          const cat = item.category.toLowerCase();
+          return !cat.includes('contingency') && !cat.includes('miscellaneous') && 
+                 !cat.includes('shopping') && !cat.includes('personal') && !cat.includes('buffer');
+        });
+        let totalEstimated = chartData.reduce((sum, item) => sum + item.amount, 0);
 
         if (selectedTransport) {
           const transportIndex = chartData.findIndex(b => b.category.toLowerCase().includes('flight') || b.category.toLowerCase().includes('transport') || b.category.toLowerCase().includes('travel') || b.category.toLowerCase().includes('transit'));
@@ -1004,7 +1008,7 @@ const BookingDrawer = ({ bookingState, setBookingState, bookingForm, setBookingF
                 </div>
               )}
 
-              {bookingState.clientSecret && (
+              {bookingState.clientSecret && !bookingState.mockRequired && (
                 <Elements stripe={stripePromise} options={{ clientSecret: bookingState.clientSecret }}>
                   <StripeBookingForm
                     bookingForm={bookingForm} setBookingForm={setBookingForm}
@@ -1013,6 +1017,25 @@ const BookingDrawer = ({ bookingState, setBookingState, bookingForm, setBookingF
                     plan={plan}
                   />
                 </Elements>
+              )}
+
+              {bookingState.mockRequired && (
+                <div className="bg-white p-6 border border-slate-200 rounded-3xl mt-4 animate-in slide-in-from-bottom-4">
+                   <form onSubmit={(e) => { e.preventDefault(); handleBookingSubmit(); }} className="space-y-4">
+                     <div>
+                       <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Simulated Booker Name</label>
+                       <input required type="text" className="w-full mt-1.5 p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 font-medium text-sm" placeholder="John Simulator" value={bookingForm.name} onChange={e => setBookingForm({ ...bookingForm, name: e.target.value })} />
+                     </div>
+                     <button type="submit" className="w-full bg-slate-900 hover:bg-indigo-600 text-white font-black py-4 rounded-2xl shadow-lg transition-all active:scale-[0.98] uppercase tracking-widest text-sm">
+                       Simulate Booking Instantly
+                     </button>
+                     {bookingState.item && (
+                       <a href={`https://www.google.com/search?q=${encodeURIComponent((bookingState.item.provider || bookingState.item.name) + ' ' + plan.destinationCity + ' booking official')}`} target="_blank" rel="noreferrer" className="w-full flex justify-center bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold py-4 rounded-2xl transition-all uppercase tracking-widest text-sm text-center">
+                         Search Provider Online 🌐
+                       </a>
+                     )}
+                   </form>
+                </div>
               )}
             </>
           )}
