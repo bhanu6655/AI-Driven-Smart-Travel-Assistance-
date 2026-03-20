@@ -73,8 +73,8 @@ export const searchInitialOptions = async (params) => {
     MANDATORY: For Flights, include a comprehensive list of at least 4-6 real flight options specifically for the departure date: ${params.startDate}. 
     
     ${amadeusHotelsContext 
-      ? `MANDATORY: You MUST build your hotel recommendations using the following real hotel data fetched from Amadeus API, if it fits the budget. Filter and enrich these real options by filling in the required hotel amenities, layout, and ratings:\n${amadeusHotelsContext}`
-      : `MANDATORY: Provide at least 30 diverse hotel options in ${params.destination}. VERY IMPORTANT: You MUST generate a significant portion of LOW BUDGET options (such as backpacker hostels, cheap guesthouses, budget lodges, and stays under ₹1000 - ₹2000 per night). Do not only generate mid-range or luxury hotels. Ensure a massive distribution from extremely cheap options to comfortable stays.`}
+      ? `MANDATORY: You MUST include the following real hotel data fetched from Amadeus API in your recommendations:\n${amadeusHotelsContext}\n\nHOWEVER, YOU MUST ALWAYS provide at least 20 diverse hotel options in total. Fill the remaining spots to reach 20 with diverse realistic combinations in ${params.destination}, making sure to include LOW BUDGET options (such as backpacker hostels, cheap guesthouses, under ₹2000 per night).`
+      : `MANDATORY: Provide at least 20 diverse hotel options in ${params.destination}. VERY IMPORTANT: You MUST generate a significant portion of LOW BUDGET options (such as backpacker hostels, cheap guesthouses, budget lodges, and stays under ₹1000 - ₹2000 per night). Do not only generate mid-range or luxury hotels. Ensure a massive distribution from extremely cheap options to comfortable stays.`}
     
     ${params.additionalPreferences ? `\n    SPECIAL AI DIRECTIVE: The user has provided these explicit requirements: "${params.additionalPreferences}". YOU MUST prioritize accommodations and options that reflect these requirements.` : ''}
   `;

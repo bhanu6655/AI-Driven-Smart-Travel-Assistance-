@@ -31,7 +31,7 @@ export const getAmadeusToken = async () => {
 // Search for hotels by latitude and longitude to get hotel IDs
 export const searchHotelsByGeocode = async (token, lat, lng) => {
   // Amadeus returns reference data for hotels in radius
-  const url = `https://test.api.amadeus.com/v1/reference-data/locations/hotels/by-geocode?latitude=${lat}&longitude=${lng}&radius=5&radiusUnit=KM`;
+  const url = `https://test.api.amadeus.com/v1/reference-data/locations/hotels/by-geocode?latitude=${lat}&longitude=${lng}&radius=50&radiusUnit=KM`;
   
   const response = await fetch(url, {
     method: "GET",
@@ -51,8 +51,8 @@ export const searchHotelsByGeocode = async (token, lat, lng) => {
 
 // Search for hotel offers (pricing) using hotel IDs
 export const getHotelOffers = async (token, hotelIds, adultCount, checkInDate, checkOutDate) => {
-  // Amadeus v3 shopping endpoint, allows up to 10-20 hotel IDs max per request usually, but let's send top 10
-  const slicedIds = hotelIds.slice(0, 10).map(h => h.hotelId).join(',');
+  // Amadeus v3 shopping endpoint, allows up to 100 hotel IDs max per request
+  const slicedIds = hotelIds.slice(0, 50).map(h => h.hotelId).join(',');
   if (!slicedIds) return [];
 
   const url = `https://test.api.amadeus.com/v3/shopping/hotel-offers?hotelIds=${slicedIds}&adults=${adultCount || 1}&checkInDate=${checkInDate}&checkOutDate=${checkOutDate}&currency=INR`;
