@@ -50,6 +50,7 @@ const Navbar = ({ user, onLogout, onNavigate }) => {
                 <button onClick={() => onNavigate('planner')} className="text-slate-600 hover:text-blue-600 font-medium transition-colors">Plan Trip</button>
                 <button onClick={() => onNavigate('history')} className="text-slate-600 hover:text-blue-600 font-medium transition-colors">My Trips</button>
                 <button onClick={() => onNavigate('dashboard')} className="text-slate-600 hover:text-blue-600 font-medium transition-colors">Analytics</button>
+                <button onClick={() => onNavigate('profile')} className="text-slate-600 hover:text-blue-600 font-medium transition-colors">Profile</button>
                 <div className="h-6 w-px bg-slate-200"></div>
                 <div className="flex items-center space-x-3">
                   <span className="text-sm text-slate-500">Hi, <span className="font-semibold text-slate-700">{user.name}</span></span>

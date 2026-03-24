@@ -107,6 +107,47 @@ app.get('/api/me', async (req, res) => {
   }
 });
 
+app.get('/api/profile', async (req, res) => {
+  try {
+    const sessionId = req.cookies.sessionId;
+    if (!sessionId) return res.status(401).json({ message: 'Not authenticated' });
+
+    const userSession = await db.get('SELECT userId as id FROM sessions WHERE sessionId = ?', sessionId);
+    if (!userSession) return res.status(401).json({ message: 'Not authenticated' });
+
+    let profile = await db.get('SELECT * FROM user_profiles WHERE userId = ?', userSession.id);
+    if (!profile) {
+      profile = { userId: userSession.id, dietary: '', travelStyle: '', passport: '' };
+    }
+    res.json(profile);
+  } catch (error) {
+    console.error('Fetch profile error:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+app.post('/api/profile', async (req, res) => {
+  try {
+    const sessionId = req.cookies.sessionId;
+    if (!sessionId) return res.status(401).json({ message: 'Not authenticated' });
+
+    const userSession = await db.get('SELECT userId as id FROM sessions WHERE sessionId = ?', sessionId);
+    if (!userSession) return res.status(401).json({ message: 'Not authenticated' });
+
+    const { dietary, travelStyle, passport } = req.body;
+    
+    await db.run(
+      'INSERT INTO user_profiles (userId, dietary, travelStyle, passport) VALUES (?, ?, ?, ?) ON CONFLICT(userId) DO UPDATE SET dietary=?, travelStyle=?, passport=?',
+      [userSession.id, dietary, travelStyle, passport, dietary, travelStyle, passport]
+    );
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Update profile error:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
 app.get('/api/trips', async (req, res) => {
   try {
     const sessionId = req.cookies.sessionId;
@@ -321,6 +362,12 @@ async function start() {
       userId TEXT,
       name TEXT,
       email TEXT
+    );
+    CREATE TABLE IF NOT EXISTS user_profiles (
+      userId TEXT PRIMARY KEY,
+      dietary TEXT,
+      travelStyle TEXT,
+      passport TEXT
     );
     CREATE TABLE IF NOT EXISTS trips (
       id TEXT PRIMARY KEY,

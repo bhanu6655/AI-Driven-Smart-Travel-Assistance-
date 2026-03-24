@@ -8,6 +8,7 @@ import HotelSelection from './components/HotelSelection';
 import ResultsDisplay from './components/ResultsDisplay';
 import AnalyticsDashboard from './components/AnalyticsDashboard';
 import AIChatbot from './components/AIChatbot';
+import UserProfile from './components/UserProfile';
 
 const LoadingSkeleton = () => {
   const [textIndex, setTextIndex] = useState(0);
@@ -143,9 +144,22 @@ const App = () => {
     setLoading(true);
     setError(null);
     try {
-      const options = await searchInitialOptions(params);
+      const profile = await backendService.getProfile();
+      let extraPrefs = [];
+      if (profile.dietary) extraPrefs.push(`Dietary Needs: ${profile.dietary}`);
+      if (profile.travelStyle) extraPrefs.push(`Travel Style/Vibe: ${profile.travelStyle}`);
+      
+      let finalParams = { ...params };
+      if (extraPrefs.length > 0) {
+        const addedContext = `\nUSER PROFILE PREFERENCES TO APPLY GLOBALLY: ${extraPrefs.join(', ')}`;
+        finalParams.additionalPreferences = finalParams.additionalPreferences 
+          ? finalParams.additionalPreferences + addedContext 
+          : addedContext;
+      }
+
+      const options = await searchInitialOptions(finalParams);
       setInitialOptions(options);
-      setLastSearchParams(params);
+      setLastSearchParams(finalParams);
       setStep('selection');
     } catch (err) {
       setError(err.message || 'Something went wrong during trip architecting.');
@@ -265,6 +279,10 @@ const App = () => {
 
     if (page === 'dashboard') {
       return user ? <AnalyticsDashboard user={user} /> : null;
+    }
+
+    if (page === 'profile') {
+      return user ? <UserProfile user={user} onCancel={() => setPage('dashboard')} /> : null;
     }
 
     if (page === 'history') {

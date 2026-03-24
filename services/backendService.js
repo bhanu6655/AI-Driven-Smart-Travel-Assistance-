@@ -38,6 +38,23 @@ export const backendService = {
     return response.json();
   },
 
+  getProfile: async () => {
+    const response = await fetch('/api/profile', { credentials: 'include' });
+    if (!response.ok) return { dietary: '', travelStyle: '', passport: '' };
+    return response.json();
+  },
+
+  updateProfile: async (profileData) => {
+    const response = await fetch('/api/profile', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(profileData)
+    });
+    if (!response.ok) throw new Error('Failed to update profile');
+    return response.json();
+  },
+
   saveFullTripPlan: async (
     userId,
     params,
