@@ -225,3 +225,39 @@ export const chatWithAI = async (message, contextData, previousMessages = []) =>
     return "I'm having a little trouble connecting to my travel servers right now. Can you try asking me again in a moment?";
   }
 };
+
+export const generatePackingList = async (plan, weatherInfo, profile) => {
+  const prompt = `
+    Act as an expert travel packer. The user is traveling to ${plan.destinationCity} for ${plan.duration} days from ${plan.startDate} to ${plan.endDate}. 
+    The live weather information is: ${weatherInfo || "unknown"}.
+    They plan to do various activities included in their itinerary.
+    The user's travel style preferences are: ${profile?.travelStyle || 'Standard'} and dietary: ${profile?.dietary || 'Standard'}.
+    
+    Generate a categorized packing list in strict JSON format. 
+    You MUST return strictly a valid JSON array of objects, starting with '[' and ending with ']'. DO NOT wrap it in markdown block quotes.
+    Structure exactly like this:
+    [
+      { "category": "Clothing", "item": "Waterproof Jacket", "reason": "Because it will rain." },
+      { "category": "Gear", "item": "Hiking Boots", "reason": "For your adventure trail." }
+    ]
+    Include 15-20 highly relevant and specific items spanning Clothing, Electronics, Toiletries, Documents, and Gear.
+  `;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: prompt,
+      config: {
+        temperature: 0.4
+      }
+    });
+
+    let rawText = response.text || "[]";
+    const jsonMatch = rawText.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+    if (jsonMatch) rawText = jsonMatch[1];
+    return JSON.parse(rawText.trim());
+  } catch (error) {
+    console.error("Packing List Error:", error);
+    throw new Error("Failed to generate packing list.");
+  }
+};

@@ -112,6 +112,8 @@ const ResultsDisplay = ({ plan }) => {
   const [loggedExpenses, setLoggedExpenses] = useState([]);
   const [expenseForm, setExpenseForm] = useState({ description: '', amount: '' });
   const [liveWeather, setLiveWeather] = useState(null);
+  const [packingList, setPackingList] = useState(null);
+  const [packingLoading, setPackingLoading] = useState(false);
   const pdfRef = useRef(null);
   const { data } = plan;
 
@@ -146,6 +148,13 @@ const ResultsDisplay = ({ plan }) => {
             }
           })
           .catch(err => console.error("Weather fetch error:", err));
+      }
+      
+      const savedPacking = localStorage.getItem(`packing_${plan.destinationCity}_${plan.startDate}`);
+      if (savedPacking) {
+        try { setPackingList(JSON.parse(savedPacking)); } catch(e) {}
+      } else {
+        setPackingList(null);
       }
     }
   }, [plan?.destinationCity, plan?.duration]);
@@ -324,6 +333,42 @@ const ResultsDisplay = ({ plan }) => {
   const closeBookingTerminal = () => {
     if (!bookingState.processing) {
       setBookingState(prev => ({ ...prev, isOpen: false }));
+    }
+  };
+
+  const handleGeneratePackingList = async () => {
+    setPackingLoading(true);
+    try {
+      const { backendService } = await import('../services/backendService.js');
+      const { generatePackingList } = await import('../services/geminiService.js');
+      const profile = await backendService.getProfile();
+      
+      let weatherInfo = liveWeather ? `${liveWeather.temp}°c, ${liveWeather.condition}` : 'Unknown';
+      const items = await generatePackingList(plan, weatherInfo, profile);
+      
+      const grouped = items.reduce((acc, item) => {
+        if (!acc[item.category]) acc[item.category] = [];
+        acc[item.category].push({ ...item, id: Math.random().toString(36).substr(2, 9), checked: false });
+        return acc;
+      }, {});
+      
+      setPackingList(grouped);
+      localStorage.setItem(`packing_${plan.destinationCity}_${plan.startDate}`, JSON.stringify(grouped));
+    } catch (err) {
+      console.error(err);
+      alert('Failed to generate packing list.');
+    } finally {
+      setPackingLoading(false);
+    }
+  };
+
+  const togglePackingItem = (category, id) => {
+    const updated = { ...packingList };
+    const item = updated[category].find(i => i.id === id);
+    if (item) {
+      item.checked = !item.checked;
+      setPackingList(updated);
+      localStorage.setItem(`packing_${plan.destinationCity}_${plan.startDate}`, JSON.stringify(updated));
     }
   };
 
@@ -716,6 +761,70 @@ const ResultsDisplay = ({ plan }) => {
             </div>
           </div >
         );
+      case 'packing':
+        return (
+          <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h5 className="font-black text-slate-800 text-2xl flex items-center gap-3">
+                  <span className="text-3xl">🎒</span> PackMate AI
+                </h5>
+                <p className="text-sm text-slate-500 font-medium mt-1">Smart contextual packing list tailored for your destination, weather, and itinerary.</p>
+              </div>
+              {!packingList && !packingLoading && (
+                <button onClick={handleGeneratePackingList} className="bg-blue-600 hover:bg-blue-700 text-white font-black px-6 py-3 rounded-2xl transition-all shadow-xl shadow-blue-200 active:scale-95 flex items-center gap-2">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+                  Generate List
+                </button>
+              )}
+            </div>
+
+            {packingLoading && (
+              <div className="py-16 text-center animate-pulse border-2 border-dashed border-slate-100 rounded-2xl">
+                <div className="text-5xl mb-4">🤖</div>
+                <h4 className="text-lg font-black text-blue-600 mb-2">Analyzing Travel Profile & Weather...</h4>
+                <p className="text-sm text-slate-400 font-bold uppercase tracking-widest">Generating smart checklist</p>
+              </div>
+            )}
+
+            {packingList && !packingLoading && (
+              <div className="grid md:grid-cols-2 gap-8">
+                {Object.keys(packingList).map((category, idx) => (
+                  <div key={idx} className="bg-slate-50 border border-slate-100 p-5 rounded-2xl">
+                    <h6 className="font-black text-slate-700 uppercase tracking-widest text-xs mb-4 pb-2 border-b border-slate-200 text-blue-600">
+                      {category} <span className="text-slate-400 ml-1">({packingList[category].length})</span>
+                    </h6>
+                    <div className="space-y-3">
+                      {packingList[category].map((item) => (
+                        <div key={item.id} className="flex items-start gap-3 group">
+                          <input 
+                            type="checkbox" 
+                            checked={item.checked} 
+                            onChange={() => togglePackingItem(category, item.id)}
+                            className="w-5 h-5 mt-0.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer shrink-0 transition-all"
+                          />
+                          <div className={`cursor-pointer transition-all ${item.checked ? 'opacity-50 line-through' : ''}`} onClick={() => togglePackingItem(category, item.id)}>
+                            <p className="font-bold text-slate-800 text-sm leading-tight group-hover:text-blue-600 transition-colors">{item.item}</p>
+                            {item.reason && <p className="text-[10px] text-slate-500 italic mt-0.5 leading-snug break-words pr-2">{item.reason}</p>}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            
+            {packingList && (
+              <div className="mt-8 pt-6 border-t border-slate-100 text-center">
+                <button onClick={handleGeneratePackingList} className="text-xs font-black text-slate-400 hover:text-blue-600 uppercase tracking-widest transition-colors inline-flex items-center gap-1.5">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                  Regenerate List
+                </button>
+              </div>
+            )}
+          </div>
+        );
       case 'map':
         return <MapViewComponent plan={plan} />;
       default:
@@ -785,6 +894,7 @@ const ResultsDisplay = ({ plan }) => {
             { id: 'attractions', label: 'Places', icon: '📍' },
             { id: 'transports', label: 'Transport', icon: '🚌' },
             { id: 'hotels', label: 'Stays', icon: '🏨' },
+            { id: 'packing', label: 'PackMate', icon: '🎒' },
             { id: 'budget', label: 'Finance', icon: '💰' },
             { id: 'map', label: 'Map View', icon: '🗺️' },
           ].map(tab => (
