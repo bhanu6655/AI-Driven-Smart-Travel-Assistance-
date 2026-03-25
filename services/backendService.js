@@ -14,12 +14,12 @@ export const backendService = {
     return response.json();
   },
 
-  login: async (email, password) => {
+  login: async (email, password, rememberMe = false) => {
     const response = await fetch('/api/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({ email, password })
+      body: JSON.stringify({ email, password, rememberMe })
     });
     if (!response.ok) {
       const error = await response.json();
@@ -117,6 +117,40 @@ export const backendService = {
     if (!response.ok) {
       throw new Error(data.message || 'Hotel booking failed');
     }
+    return data;
+  },
+
+  forgotPassword: async (email) => {
+    const response = await fetch('/api/forgot-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || 'Request failed');
+    return data;
+  },
+
+  resetPassword: async (token, newPassword) => {
+    const response = await fetch('/api/reset-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, newPassword })
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || 'Reset failed');
+    return data;
+  },
+
+  updatePassword: async (currentPassword, newPassword) => {
+    const response = await fetch('/api/update-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ currentPassword, newPassword })
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || 'Failed to update password');
     return data;
   }
 };

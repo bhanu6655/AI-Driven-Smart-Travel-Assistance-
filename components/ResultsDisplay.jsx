@@ -102,6 +102,7 @@ const MapViewComponent = ({ plan }) => {
   );
 };
 
+
 const ResultsDisplay = ({ plan }) => {
   const [activeTab, setActiveTab] = useState('itinerary');
   const [showShareTooltip, setShowShareTooltip] = useState(false);
@@ -833,7 +834,7 @@ const ResultsDisplay = ({ plan }) => {
   };
 
   return (
-    <div ref={pdfRef} className="bg-white rounded-[40px] shadow-2xl border border-slate-200 overflow-hidden mt-12 mb-20 max-w-5xl mx-auto transform transition-all animate-in fade-in slide-in-from-bottom-8 duration-1000">
+    <div ref={pdfRef} className="bg-white rounded-[40px] shadow-2xl border border-slate-200 overflow-hidden mt-12 mb-20 w-full transform transition-all animate-in fade-in slide-in-from-bottom-8 duration-1000">
       <div className="bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-900 p-10 text-white relative">
         <div className="absolute top-0 right-0 w-80 h-80 bg-white/5 rounded-full -mr-20 -mt-20 blur-3xl animate-pulse"></div>
 
@@ -888,7 +889,7 @@ const ResultsDisplay = ({ plan }) => {
           </div>
         </div>
 
-        <div className="flex mt-14 space-x-3 overflow-x-auto pb-4 no-scrollbar">
+        <div className="flex mt-14 gap-3 overflow-x-auto pb-4 no-scrollbar justify-center items-center">
           {[
             { id: 'itinerary', label: 'Itinerary', icon: '📅' },
             { id: 'attractions', label: 'Places', icon: '📍' },
@@ -901,13 +902,13 @@ const ResultsDisplay = ({ plan }) => {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`px-10 py-4 rounded-[20px] text-sm font-black transition-all shrink-0 flex items-center gap-3 border-2 ${activeTab === tab.id
-                ? 'bg-white text-blue-700 shadow-2xl border-white scale-105'
-                : 'bg-white/5 hover:bg-white/10 text-white border-white/5'
+              className={`px-6 md:px-10 py-4 rounded-[20px] text-sm font-black transition-all shrink-0 flex items-center gap-3 border-2 ${activeTab === tab.id
+                ? 'bg-white text-blue-700 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.3)] border-white scale-105'
+                : 'bg-white/5 hover:bg-white/10 text-white border-white/5 hover:scale-102 hover:border-white/20'
                 }`}
             >
-              <span className="text-xl">{tab.icon}</span>
-              {tab.label}
+              <span className="text-xl shrink-0">{tab.icon}</span>
+              <span className="shrink-0">{tab.label}</span>
             </button>
           ))}
         </div>

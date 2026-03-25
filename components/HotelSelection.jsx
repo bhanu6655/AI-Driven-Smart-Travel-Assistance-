@@ -3,7 +3,7 @@ import React from 'react';
 
 const HotelSelection = ({ hotels, onSelect, loading }) => {
   return (
-    <div className="max-w-7xl mx-auto py-12 px-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="w-full py-12 px-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="text-center mb-12">
         <h2 className="text-4xl font-black text-slate-900 mb-4">Choose Your Base</h2>
         <p className="text-slate-500 text-lg">

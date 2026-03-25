@@ -9,6 +9,7 @@
     "frontend": "vite",
     "dev": "concurrently \"npm run server\" \"npm run frontend\"",
     "build": "vite build",
+    "render-build": "npm install && npm run build",
     "preview": "vite preview"
   },
   "dependencies": {
