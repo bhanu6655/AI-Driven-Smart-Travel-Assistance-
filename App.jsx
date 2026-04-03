@@ -683,6 +683,16 @@ const App = () => {
               onSelect={handleSelectHotel}
               loading={loading}
             />
+            {initialOptions.budgetWarning && (
+              <div className="w-full mx-auto mt-2 mb-6 bg-amber-50 border border-amber-200 text-amber-800 py-3 px-5 rounded-2xl flex items-center gap-3 shadow-sm">
+                <svg className="w-5 h-5 shrink-0 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                <p className="text-sm font-bold">
+                  💡 Heads up: Your budget may be tight for this destination. We've still shown you all available options — look for budget-friendly hotels below!
+                </p>
+              </div>
+            )}
             {error && (
               <div className="w-full px-8 mx-auto mt-6 bg-red-50 border border-red-100 text-red-600 py-4 rounded-2xl flex items-center shadow-sm">
                 <svg className="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-10a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>

@@ -128,8 +128,9 @@ export const searchInitialOptions = async (params) => {
     });
 
     const data = JSON.parse(response.text || "{}");
+    // Don't block the user — just attach a soft warning flag if AI thinks budget may be tight
     if (data.isBudgetSufficient === false) {
-      throw new Error("Insufficient budget for this destination.");
+      data.budgetWarning = true;
     }
     return data;
   } catch (error) {
